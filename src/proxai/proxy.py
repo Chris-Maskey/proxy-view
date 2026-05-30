@@ -65,8 +65,18 @@ class ProxyHandler:
             )
             latency_ms = (time.monotonic() - t0) * 1000
 
+            # httpx auto-decompresses gzip/deflate. The headers still reflect
+            # the original encoding — strip them so the downstream client
+            # doesn't try to decompress an already-decompressed body.
             response_body = response.text
-            response_headers = dict(response.headers)
+            response_headers = {
+                k: v for k, v in response.headers.items()
+                if k.lower() not in (
+                    "content-encoding",
+                    "transfer-encoding",
+                    "content-length",
+                )
+            }
 
             return {
                 "status": response.status_code,
