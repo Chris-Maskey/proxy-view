@@ -1,0 +1,36 @@
+.timing-tab {
+  padding: var(--spacing-md);
+}
+
+.timing-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-md);
+}
+
+.timing-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-lg);
+}
+
+.timing-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--border-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.timing-label {
+  color: var(--text-secondary);
+}
+
+.timing-value {
+  color: var(--text-primary);
+}

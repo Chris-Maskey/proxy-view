@@ -1,0 +1,39 @@
+.waterfall {
+  padding: var(--spacing-md);
+}
+
+.waterfall-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+}
+
+.waterfall-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.waterfall-track {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.waterfall-bar {
+  height: 16px;
+  border-radius: 3px;
+  min-width: 4px;
+  transition: width var(--transition-normal);
+}
+
+.waterfall-ms {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
