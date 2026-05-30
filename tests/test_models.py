@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from proxai.models import (
+from proxy_view.models import (
     RequestError,
     RequestStarted,
     RequestCompleted,

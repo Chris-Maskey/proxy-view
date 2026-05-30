@@ -5,9 +5,9 @@ from fastapi import FastAPI
 from httpx import AsyncClient, ASGITransport
 from fastapi.testclient import TestClient
 
-from proxai.config import ProxyConfig
-from proxai.server import create_app
-from proxai.ws import get_manager
+from proxy_view.config import ProxyConfig
+from proxy_view.server import create_app
+from proxy_view.ws import get_manager
 
 
 @pytest.mark.asyncio
@@ -38,7 +38,7 @@ async def test_proxy_catch_all_forwards_request():
     target_port = sock.getsockname()[1]
     sock.close()
 
-    from proxai.ws import get_manager
+    from proxy_view.ws import get_manager
     mgr = get_manager()
 
     # Reset the manager for clean state
@@ -107,7 +107,7 @@ async def test_proxy_events_emitted_via_websocket():
     sock.close()
 
     # Reset state
-    from proxai.ws import get_manager
+    from proxy_view.ws import get_manager
     mgr = get_manager()
     mgr.active_connections = []
 

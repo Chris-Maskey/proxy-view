@@ -1,4 +1,4 @@
-"""Configuration models for Proxai."""
+"""Configuration models for proxy-view."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-// Shared types matching Proxai's Pydantic event models
+// Shared types matching proxy-view's Pydantic event models
 
 export interface RequestStarted {
 	type: "request.started";

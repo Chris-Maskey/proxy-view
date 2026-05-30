@@ -10,7 +10,7 @@ export default function WelcomeScreen({ proxyPort, targetUrl }: Props) {
 		<div className="welcome">
 			<div className="welcome-logo">
 				<span className="welcome-logo-icon">⬡</span>
-				<h1 className="welcome-logo-text">Proxai</h1>
+				<h1 className="welcome-logo-text">proxy-view</h1>
 			</div>
 			<p className="welcome-subtitle">API Debug Proxy</p>
 

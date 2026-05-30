@@ -7,7 +7,7 @@ describe("WelcomeScreen", () => {
 		render(
 			<WelcomeScreen proxyPort={9090} targetUrl="http://localhost:3000" />,
 		);
-		expect(screen.getByText(/Proxai/i)).toBeInTheDocument();
+		expect(screen.getByText(/proxy-view/i)).toBeInTheDocument();
 		expect(screen.getAllByText(/9090/i).length).toBeGreaterThanOrEqual(1);
 		expect(screen.getByText(/localhost:3000/i)).toBeInTheDocument();
 	});

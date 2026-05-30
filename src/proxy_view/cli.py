@@ -1,4 +1,4 @@
-"""CLI entrypoint for Proxai — Typer + Rich Live display."""
+"""CLI entrypoint for proxy-view — Typer + Rich Live display."""
 
 from __future__ import annotations
 
@@ -19,18 +19,18 @@ from rich.table import Table
 from rich.text import Text
 
 app = typer.Typer(
-    name="proxai",
+    name="proxy_view",
     help="A CLI-first API debugging proxy with real-time WebSocket streaming.",
 )
 console = Console()
 
-PROXAI_DIR = Path.home() / ".proxai"
+PROXY_VIEW_DIR = Path.home() / ".proxy-view"
 
 
-def _get_proxai_dir() -> Path:
-    """Ensure .proxai directory exists in user's home."""
-    PROXAI_DIR.mkdir(parents=True, exist_ok=True)
-    return PROXAI_DIR
+def _get_data_dir() -> Path:
+    """Ensure .proxy-view directory exists in user's home."""
+    PROXY_VIEW_DIR.mkdir(parents=True, exist_ok=True)
+    return PROXY_VIEW_DIR
 
 
 def _create_table() -> Table:
@@ -107,7 +107,7 @@ def start(
     db_path: Optional[str] = typer.Option(
         None,
         "--db",
-        help="Path to SQLite database (default: ~/.proxai/db.sqlite).",
+        help="Path to SQLite database (default: ~/.proxy-view/db.sqlite).",
     ),
     dashboard: bool = typer.Option(
         False,
@@ -116,11 +116,11 @@ def start(
         help="Open the React dashboard in a browser.",
     ),
 ) -> None:
-    """Start the Proxai proxy server and live CLI viewer."""
+    """Start the proxy-view proxy server and live CLI viewer."""
     if ctx.invoked_subcommand is not None:
         return  # Let the subcommand (e.g. replay) handle it
-    _get_proxai_dir()
-    run = os.environ.get("PROXAI_RUN")  # internal flag for testing
+    _get_data_dir()
+    run = os.environ.get("PROXY_VIEW_RUN")  # internal flag for testing
     if run != "server":
         _run_cli(target=target, port=port, db_path=db_path, dashboard=dashboard)
 
@@ -132,17 +132,17 @@ def _run_cli(
     dashboard: bool = False,
 ) -> None:
     """Run the CLI: start server subprocess, health check, connect WS, show live display."""
-    resolved_db = db_path or str(PROXAI_DIR / "db.sqlite")
+    resolved_db = db_path or str(PROXY_VIEW_DIR / "db.sqlite")
 
     # Launch the Uvicorn server as a subprocess
     server_env = os.environ.copy()
-    server_env["PROXAI_TARGET"] = target
-    server_env["PROXAI_DB_PATH"] = resolved_db
+    server_env["PROXY_VIEW_TARGET"] = target
+    server_env["PROXY_VIEW_DB_PATH"] = resolved_db
     server_args = [
         sys.executable,
         "-m",
         "uvicorn",
-        "proxai.server:create_app",
+        "proxy_view.server:create_app",
         "--host",
         "127.0.0.1",
         "--port",
@@ -152,7 +152,7 @@ def _run_cli(
         "--factory",
     ]
 
-    console.print(f"[dim]Starting Proxai on port {port} → {target}...[/dim]")
+    console.print(f"[dim]Starting proxy-view on port {port} → {target}...[/dim]")
 
     server_proc = subprocess.Popen(
         server_args,
@@ -356,7 +356,7 @@ def replay(
     except ConnectionRefusedError:
         console.print(
             f"[red]Could not connect to proxy at port {port}. "
-            "Is Proxai running?[/red]"
+            "Is proxy-view running?[/red]"
         )
         raise typer.Exit(1)
     except Exception as e:

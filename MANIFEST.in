@@ -1,0 +1,2 @@
+include src/proxy_view/dashboard/index.html
+recursive-include src/proxy_view/dashboard/assets *

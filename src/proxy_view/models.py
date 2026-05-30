@@ -1,4 +1,4 @@
-"""Pydantic event models for Proxai events."""
+"""Pydantic event models for proxy-view events."""
 
 from datetime import datetime, timezone
 from typing import Any, Optional

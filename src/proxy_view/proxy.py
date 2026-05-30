@@ -7,7 +7,7 @@ import logging
 
 import httpx
 
-from proxai.config import ProxyConfig
+from proxy_view.config import ProxyConfig
 
 logger = logging.getLogger(__name__)
 

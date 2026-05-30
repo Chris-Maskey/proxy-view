@@ -6,8 +6,8 @@ import tempfile
 import pytest
 import pytest_asyncio
 
-from proxai.models import RequestCompleted, RequestError, RequestStarted
-from proxai.storage import Storage
+from proxy_view.models import RequestCompleted, RequestError, RequestStarted
+from proxy_view.storage import Storage
 
 
 @pytest_asyncio.fixture

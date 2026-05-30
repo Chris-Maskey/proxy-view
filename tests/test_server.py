@@ -7,7 +7,7 @@ import pytest_asyncio
 from fastapi import FastAPI
 from httpx import AsyncClient, ASGITransport
 
-from proxai.server import create_app
+from proxy_view.server import create_app
 
 
 @pytest_asyncio.fixture
@@ -55,8 +55,8 @@ class TestWebSocketEndpoint:
                 ws.receive_json()
 
                 # Simulate a broadcast
-                from proxai.models import RequestStarted
-                from proxai.ws import get_manager
+                from proxy_view.models import RequestStarted
+                from proxy_view.ws import get_manager
 
                 mgr = get_manager()
                 event = RequestStarted(
@@ -119,9 +119,9 @@ async def test_replay_stored_request():
     import sqlite3
     from fastapi import FastAPI as TargetApp
     from httpx import AsyncClient
-    from proxai.config import ProxyConfig
-    from proxai.server import create_app
-    from proxai.ws import get_manager
+    from proxy_view.config import ProxyConfig
+    from proxy_view.server import create_app
+    from proxy_view.ws import get_manager
 
     # Reset WS state
     get_manager().active_connections = []

@@ -12,11 +12,11 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from proxai.config import ProxyConfig
-from proxai.models import RequestCompleted, RequestError, RequestStarted
-from proxai.proxy import ProxyHandler
-from proxai.storage import Storage
-from proxai.ws import get_manager
+from proxy_view.config import ProxyConfig
+from proxy_view.models import RequestCompleted, RequestError, RequestStarted
+from proxy_view.proxy import ProxyHandler
+from proxy_view.storage import Storage
+from proxy_view.ws import get_manager
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +25,16 @@ def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = No
     """Create the FastAPI application with proxy forwarding.
 
     Args:
-        config: Proxy configuration. If None, reads from PROXAI_TARGET env var
+        config: Proxy configuration. If None, reads from PROXY_VIEW_TARGET env var
                  or defaults to localhost:3000.
         db_path: Optional path to SQLite database. If None, reads from
-                 PROXAI_DB_PATH env var or None.
+                 PROXY_VIEW_DB_PATH env var or None.
     """
     if config is None:
-        target = os.environ.get("PROXAI_TARGET", "http://localhost:3000")
+        target = os.environ.get("PROXY_VIEW_TARGET", "http://localhost:3000")
         config = ProxyConfig(target_url=target)
     if db_path is None:
-        db_path = os.environ.get("PROXAI_DB_PATH")
+        db_path = os.environ.get("PROXY_VIEW_DB_PATH")
 
     handler = ProxyHandler(config)
     storage: Storage | None = None
@@ -50,13 +50,21 @@ def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = No
             await storage.close()
         await handler.close()
 
-    app = FastAPI(title="Proxai", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="proxy-view", version="0.1.0", lifespan=lifespan)
     manager = get_manager()
 
     # Serve dashboard static files if built
-    _dashboard_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'dashboard', 'dist')
-    _dashboard_dir = os.path.abspath(_dashboard_dir)
-    if os.path.isdir(_dashboard_dir):
+    _dashboard_dir = None
+    # 1. Check bundled location (installed via pip)
+    _bundled = os.path.join(os.path.dirname(__file__), 'dashboard')
+    if os.path.isdir(_bundled):
+        _dashboard_dir = os.path.abspath(_bundled)
+    # 2. Check development location (source tree)
+    if not _dashboard_dir:
+        _dev = os.path.join(os.path.dirname(__file__), '..', '..', 'dashboard', 'dist')
+        if os.path.isdir(_dev):
+            _dashboard_dir = os.path.abspath(_dev)
+    if _dashboard_dir:
         _sf = StaticFiles(directory=_dashboard_dir, html=True)
 
         # Wrap with no-cache headers

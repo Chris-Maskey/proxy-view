@@ -21,9 +21,9 @@ function getReplayUrl(requestId: string): string {
 }
 
 export default function RequestRow({ request, selected, onSelect }: Props) {
-	const [replayState, setReplayState] = useState<
-		"idle" | "replaying" | "done"
-	>("idle");
+	const [replayState, setReplayState] = useState<"idle" | "replaying" | "done">(
+		"idle",
+	);
 	const loading = !request.is_completed && !request.is_error;
 	const isError = request.is_error;
 

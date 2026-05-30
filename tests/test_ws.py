@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from proxai.models import RequestStarted
-from proxai.ws import ConnectionManager
+from proxy_view.models import RequestStarted
+from proxy_view.ws import ConnectionManager
 
 
 class TestConnectionManager:

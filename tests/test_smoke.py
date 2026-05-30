@@ -1,6 +1,6 @@
 """Smoke test — verify test infrastructure works."""
 
-from proxai import __version__
+from proxy_view import __version__
 
 
 def test_version():

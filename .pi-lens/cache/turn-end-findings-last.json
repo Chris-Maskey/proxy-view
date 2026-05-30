@@ -1,6 +1,6 @@
 {
-  "signature": "src/proxai/server.py::Unresolved from this turn — src/proxai/server.py:\n🔴 STOP — 2 issue(s) must be fixed:\n  L73: Object of type \"Middleware\" is not callable\n    Attribute \"__call__\" is unknown\n  Import \"fastapi\" could not be resolved",
+  "signature": "README.md::ℹ️ Advisory — no action required this turn:\nCode-quality warnings introduced/touched this turn: 1 across 1 file(s).\nTop rules: pi-lens×1\nDetails written to .pi-lens/cache/code-quality-warnings.json\nNo action required unless you are already refactoring these areas.",
   "sessionId": "lens-mprygwuh-d8d46edd",
-  "projectSeqStart": 131,
-  "projectSeqEnd": 132
+  "projectSeqStart": 155,
+  "projectSeqEnd": 156
 }

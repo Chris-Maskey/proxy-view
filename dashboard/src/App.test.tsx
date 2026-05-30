@@ -18,7 +18,7 @@ beforeAll(() => {
 describe("App", () => {
 	it("renders welcome screen when no requests", () => {
 		render(<App />);
-		expect(screen.getByText(/Proxai/i)).toBeInTheDocument();
+		expect(screen.getByText(/proxy-view/i)).toBeInTheDocument();
 		expect(screen.getByText(/waiting/i)).toBeInTheDocument();
 	});
 

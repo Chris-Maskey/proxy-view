@@ -2,8 +2,8 @@
 
 import pytest
 
-from proxai.config import ProxyConfig
-from proxai.proxy import ProxyHandler
+from proxy_view.config import ProxyConfig
+from proxy_view.proxy import ProxyHandler
 
 
 class TestProxyHandler:

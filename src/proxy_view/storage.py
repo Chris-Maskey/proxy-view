@@ -9,7 +9,7 @@ from typing import Any, Optional
 
 import aiosqlite
 
-from proxai.models import RequestCompleted, RequestError, RequestStarted
+from proxy_view.models import RequestCompleted, RequestError, RequestStarted
 
 logger = logging.getLogger(__name__)
 
