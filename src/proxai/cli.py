@@ -307,5 +307,111 @@ async def _run_live_display(port: int, target: str) -> None:
         sys.exit(1)
 
 
+@app.command()
+def replay(
+    request_id: str = typer.Argument(..., help="ID of the request to replay."),
+    port: int = typer.Option(
+        9090,
+        "--port",
+        "-p",
+        help="Port of the running proxy server.",
+    ),
+    diff: bool = typer.Option(
+        False,
+        "--diff",
+        "-d",
+        help="Show a diff between the original and replayed response.",
+    ),
+) -> None:
+    """Replay a previously captured request through the proxy."""
+    import http.client
+    import json as json_mod
+
+    base_url = f"http://127.0.0.1:{port}"
+
+    # Step 1: Optionally fetch the original response for diff
+    original_body: str | None = None
+    original_status: int | None = None
+    if diff:
+        try:
+            conn = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            conn.request("GET", f"/logs/{request_id}")
+            resp = conn.getresponse()
+            if resp.status == 200:
+                detail = json_mod.loads(resp.read().decode())
+                original_body = detail.get("response_body")
+                original_status = detail.get("status")
+            conn.close()
+        except Exception as e:
+            console.print(f"[yellow]Warning: could not fetch original: {e}[/yellow]")
+
+    # Step 2: Call the replay endpoint
+    try:
+        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=30)
+        conn.request("POST", f"/replay/{request_id}")
+        resp = conn.getresponse()
+        body = resp.read().decode()
+        data = json_mod.loads(body)
+        conn.close()
+    except ConnectionRefusedError:
+        console.print(
+            f"[red]Could not connect to proxy at port {port}. "
+            "Is Proxai running?[/red]"
+        )
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[red]Replay failed: {e}[/red]")
+        raise typer.Exit(1)
+
+    if resp.status != 200:
+        console.print(f"[red]Replay failed: {data.get('error', 'unknown error')}[/red]")
+        raise typer.Exit(1)
+
+    # Step 3: Display results
+    method = data.get("method", "?")
+    path = data.get("path", "/")
+    status = data.get("status", 0)
+    latency = data.get("latency_ms", 0)
+    new_id = data.get("replay_request_id", "?")
+    error = data.get("error")
+
+    method_styled = Text(method, style=_method_style(method))
+    status_styled = Text(str(status), style=_status_style(status))
+    latency_styled = Text(f"{latency:.0f}ms", style=_latency_style(latency))
+
+    console.print(f"Replaying request [bold]{request_id[:12]}...[/bold]")
+    console.print()
+
+    table = Table(show_header=False, box=None, padding=(0, 2))
+    table.add_column("Field", style="bold")
+    table.add_column("Value")
+    table.add_row("Method", method_styled)
+    table.add_row("Path", path)
+    table.add_row("Status", status_styled)
+    table.add_row("Latency", latency_styled)
+    table.add_row("New ID", new_id[:16] + "...")
+    if error:
+        table.add_row("Error", Text(error, style="red"))
+    console.print(table)
+
+    # Show diff if requested
+    if diff and original_body is not None and not error:
+        replay_body = data.get("response_body")
+        if replay_body is not None and original_body != replay_body:
+            console.print()
+            console.print("[yellow]Response differs from original:[/yellow]")
+            console.print(f"  Original ({original_status}): {original_body[:200]}")
+            console.print(f"  Replay ({status}):       {replay_body[:200]}")
+        elif replay_body is not None:
+            console.print()
+            console.print("[green]✓ Response matches original.[/green]")
+
+    console.print()
+    console.print(
+        "[dim]View this request in the dashboard: "
+        f"http://127.0.0.1:{port}/dashboard/?port={port}[/dim]"
+    )
+
+
 if __name__ == "__main__":
     app()

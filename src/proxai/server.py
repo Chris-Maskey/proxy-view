@@ -181,6 +181,7 @@ def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = No
             "path": original["url"] or original["path"],
             "status": result["status"],
             "status_text": result["status_text"],
+            "response_body": result.get("response_body"),
             "latency_ms": result["latency_ms"],
             "error": result["error"],
         })
@@ -202,6 +203,48 @@ def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = No
             }
             for r in logs
         ])
+
+    @app.get("/logs/{request_id}")
+    async def get_log_detail(request_id: str):
+        """Get full details for a single stored request (for diff)."""
+        if storage is None:
+            return JSONResponse({"error": "Storage not enabled"}, status_code=400)
+        record = await storage.get_request(request_id)
+        if record is None:
+            return JSONResponse({"error": "Not found"}, status_code=404)
+
+        # Parse JSON fields back to dicts for the response
+        req_headers = {}
+        if record.get("request_headers"):
+            try:
+                req_headers = json.loads(record["request_headers"])
+            except (json.JSONDecodeError, TypeError):
+                req_headers = {}
+
+        resp_headers = {}
+        if record.get("response_headers"):
+            try:
+                resp_headers = json.loads(record["response_headers"])
+            except (json.JSONDecodeError, TypeError):
+                resp_headers = {}
+
+        return JSONResponse({
+            "request_id": record["request_id"],
+            "method": record["method"],
+            "url": record["url"],
+            "path": record["path"],
+            "query": record.get("query"),
+            "request_headers": req_headers,
+            "request_body": record.get("request_body"),
+            "status": record.get("status"),
+            "status_text": record.get("status_text"),
+            "response_headers": resp_headers,
+            "response_body": record.get("response_body"),
+            "latency_ms": record.get("latency_ms"),
+            "error": record.get("error"),
+            "started_at": record["started_at"],
+            "completed_at": record.get("completed_at"),
+        })
 
     # Catch-all route — must be registered AFTER specific routes
     @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
