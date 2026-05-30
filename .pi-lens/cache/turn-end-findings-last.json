@@ -1,0 +1,6 @@
+{
+  "signature": "tests/test_models.py::Unresolved from this turn — tests/test_models.py:\n🔴 STOP — 4 issue(s) must be fixed:\n  L9: \"RequestError\" is unknown import symbol\n  L10: \"RequestStarted\" is unknown import symbol\n  L11: \"RequestCompleted\" is unknown import symbol\n  \"RequestError\" is unknown import symbol",
+  "sessionId": "lens-mprsnob6-77f52150",
+  "projectSeqStart": 6,
+  "projectSeqEnd": 7
+}
