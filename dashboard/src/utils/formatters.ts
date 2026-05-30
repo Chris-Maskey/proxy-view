@@ -6,7 +6,8 @@ export function formatBytes(bytes?: number | null): string {
 	return `${(bytes / 1024 ** i).toFixed(1)} ${units[i]}`;
 }
 
-export function latencyColor(ms: number): string {
+export function latencyColor(ms: number | undefined | null): string {
+	if (ms == null || ms < 0) return "var(--text-dim)";
 	if (ms < 100) return "var(--latency-fast)";
 	if (ms < 500) return "var(--latency-medium)";
 	return "var(--latency-slow)";
@@ -29,7 +30,8 @@ const METHOD_COLORS: Record<string, string> = {
 	DELETE: "var(--method-delete)",
 };
 
-export function methodColor(method: string): string {
+export function methodColor(method: string | undefined | null): string {
+	if (!method) return "var(--text-secondary)";
 	return METHOD_COLORS[method.toUpperCase()] ?? "var(--text-secondary)";
 }
 

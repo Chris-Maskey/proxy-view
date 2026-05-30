@@ -51,6 +51,15 @@ export function useRequests() {
 	const requestsRef = useRef<RequestEntry[]>([]);
 
 	const addEvent = useCallback((event: RequestEvent) => {
+		// Ignore non-request events (e.g. { type: "connected" })
+		if (
+			event.type !== "request.started" &&
+			event.type !== "request.completed" &&
+			event.type !== "request.error"
+		) {
+			return;
+		}
+
 		if (event.type === "request.completed" || event.type === "request.error") {
 			requestsRef.current = requestsRef.current.map((r) => {
 				if (
