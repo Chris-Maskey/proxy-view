@@ -1,6 +1,6 @@
 {
-  "signature": "src/proxai/server.py|src/proxai/ws.py::📐 Cascade errors in 1 neighbor file(s) — fix before finishing turn:\n<diagnostics file=\"tests/test_server.py\" reason=\"fallback\">\n  line 22, col 15 rule=cascade:reportReturnType: Return type of async generator function must be compatible with \"AsyncGenerator[AsyncClient, Any]\"\n  line 19, col 35 rule=cascade:reportInvalidTypeForm: Return type of async generator function must be compatible with \"AsyncGenerator[Any, Any]\"\n</diagnostics>\n\n🧪 Likely tests for affected neighbors:\n  tests/test_server.py (pytest)",
+  "signature": "src/proxai/config.py|src/proxai/proxy.py::📐 Cascade errors in 1 neighbor file(s) — fix before finishing turn:\n<diagnostics file=\"tests/test_proxy.py\" reason=\"fallback\">\n  line 70, col 34 rule=cascade:reportAttributeAccessIssue: Cannot access attribute \"handle\" for class \"ProxyHandler\"\n</diagnostics>\n\n🧪 Likely tests for affected neighbors:\n  tests/test_proxy.py (pytest)",
   "sessionId": "lens-mprsnob6-77f52150",
-  "projectSeqStart": 13,
-  "projectSeqEnd": 14
+  "projectSeqStart": 17,
+  "projectSeqEnd": 18
 }
