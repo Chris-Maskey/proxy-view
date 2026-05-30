@@ -49,3 +49,24 @@
 	text-align: right;
 	flex-shrink: 0;
 }
+
+.request-replay-btn {
+	background: none;
+	border: 1px solid transparent;
+	color: var(--text-dim);
+	cursor: pointer;
+	font-size: 14px;
+	padding: 1px 4px;
+	border-radius: 3px;
+	line-height: 1;
+	transition: all var(--transition-fast);
+	flex-shrink: 0;
+}
+.request-replay-btn:hover {
+	color: var(--text-primary);
+	border-color: var(--border-primary);
+	background: var(--bg-hover);
+}
+.request-replay-btn--active {
+	color: var(--status-2xx);
+}
