@@ -1,0 +1,27 @@
+.app {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+}
+
+.app-main {
+	display: flex;
+	flex: 1;
+	overflow: hidden;
+}
+
+.app-list {
+	flex: 1;
+	overflow: hidden;
+	min-width: var(--request-list-min-width);
+}
+
+.app-detail {
+	width: var(--detail-panel-width);
+	min-width: 400px;
+	max-width: 700px;
+	overflow: hidden;
+	flex-shrink: 0;
+}
