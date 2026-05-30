@@ -1,6 +1,6 @@
 {
-  "signature": "tests/test_integration.py::Unresolved from this turn — tests/test_integration.py:\n🔴 STOP — 3 issue(s) must be fixed:\n  L48: No parameter named \"config\"\n  L115: No parameter named \"config\"\n  No parameter named \"config\"",
+  "signature": "src/proxai/storage.py::📐 Cascade errors in 1 neighbor file(s) — fix before finishing turn:\n<diagnostics file=\"tests/test_storage.py\" reason=\"fallback\">\n  line 18, col 11 rule=cascade:reportReturnType: Return type of async generator function must be compatible with \"AsyncGenerator[str, Any]\"\n  line 14, col 24 rule=cascade:reportInvalidTypeForm: Return type of async generator function must be compatible with \"AsyncGenerator[Any, Any]\"\n  line 27, col 11 rule=cascade:reportReturnType: Return type of async generator function must be compatible with \"AsyncGenerator[Storage, Any]\"\n  line 23, col 36 rule=cascade:reportInvalidTypeForm: Return type of async generator function must be compatible with \"AsyncGenerator[Any, Any]\"\n</diagnostics>\n\n🧪 Likely tests for affected neighbors:\n  tests/test_storage.py (pytest)",
   "sessionId": "lens-mprsnob6-77f52150",
-  "projectSeqStart": 19,
-  "projectSeqEnd": 20
+  "projectSeqStart": 24,
+  "projectSeqEnd": 25
 }
