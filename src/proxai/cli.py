@@ -91,6 +91,7 @@ def _latency_style(latency_ms: float) -> str:
 
 @app.callback(invoke_without_command=True)
 def start(
+    ctx: typer.Context,
     target: str = typer.Option(
         "http://localhost:3000",
         "--target",
@@ -116,6 +117,8 @@ def start(
     ),
 ) -> None:
     """Start the Proxai proxy server and live CLI viewer."""
+    if ctx.invoked_subcommand is not None:
+        return  # Let the subcommand (e.g. replay) handle it
     _get_proxai_dir()
     run = os.environ.get("PROXAI_RUN")  # internal flag for testing
     if run != "server":
@@ -134,8 +137,7 @@ def _run_cli(
     # Launch the Uvicorn server as a subprocess
     server_env = os.environ.copy()
     server_env["PROXAI_TARGET"] = target
-    if db_path:
-        server_env["PROXAI_DB_PATH"] = db_path
+    server_env["PROXAI_DB_PATH"] = resolved_db
     server_args = [
         sys.executable,
         "-m",
@@ -313,13 +315,11 @@ def replay(
     port: int = typer.Option(
         9090,
         "--port",
-        "-p",
-        help="Port of the running proxy server.",
+        help="Port of the running proxy server. [default: 9090]",
     ),
     diff: bool = typer.Option(
         False,
         "--diff",
-        "-d",
         help="Show a diff between the original and replayed response.",
     ),
 ) -> None:
