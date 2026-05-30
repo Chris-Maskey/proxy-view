@@ -33,3 +33,6 @@ Thumbs.db
 
 # Gstack artifacts
 ~.gstack/
+
+# Pi agent cache
+.pi-lens/
