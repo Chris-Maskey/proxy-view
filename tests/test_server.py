@@ -105,3 +105,89 @@ class TestDashboardEndpoint:
         resp = await client.get("/health")
         assert resp.status_code == 200
         assert resp.json()["status"] == "ok"
+
+
+@pytest.mark.asyncio
+async def test_replay_stored_request():
+    """POST /replay/{id} replays a stored request and returns the result."""
+    import socket
+    import threading
+    import time
+    import os
+    import tempfile
+    import uvicorn
+    import sqlite3
+    from fastapi import FastAPI as TargetApp
+    from httpx import AsyncClient
+    from proxai.config import ProxyConfig
+    from proxai.server import create_app
+    from proxai.ws import get_manager
+
+    # Reset WS state
+    get_manager().active_connections = []
+
+    # Start echo target
+    target = TargetApp()
+
+    @target.get("/ping")
+    async def ping():
+        return {"pong": True, "source": "target"}
+
+    @target.post("/ping")
+    async def ping_post():
+        return {"pong": True, "echoed": True}
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("127.0.0.1", 0))
+    target_port = sock.getsockname()[1]
+    sock.close()
+
+    # Temp DB for storage
+    db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    db_path = db_file.name
+    db_file.close()
+
+    config = ProxyConfig(target_url=f"http://127.0.0.1:{target_port}")
+    proxy_app = create_app(config=config, db_path=db_path)
+    proxy_port = target_port + 1
+
+    # Start servers
+    threading.Thread(
+        target=uvicorn.run, args=(target,),
+        kwargs={"host": "127.0.0.1", "port": target_port, "log_level": "error"},
+        daemon=True,
+    ).start()
+    threading.Thread(
+        target=uvicorn.run, args=(proxy_app,),
+        kwargs={"host": "127.0.0.1", "port": proxy_port, "log_level": "error"},
+        daemon=True,
+    ).start()
+    time.sleep(2)
+
+    # Make a request through the proxy (gets stored)
+    async with AsyncClient() as c:
+        resp = await c.get(f"http://127.0.0.1:{proxy_port}/ping")
+        assert resp.status_code == 200
+        assert resp.json()["source"] == "target"
+
+    # Query storage for the request_id
+    conn = sqlite3.connect(db_path)
+    row = conn.execute(
+        "SELECT request_id FROM requests ORDER BY started_at DESC LIMIT 1"
+    ).fetchone()
+    request_id = row[0]
+    conn.close()
+
+    # Replay the request
+    async with AsyncClient() as c:
+        resp = await c.post(f"http://127.0.0.1:{proxy_port}/replay/{request_id}")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["original_request_id"] == request_id
+        assert data["status"] == 200
+        assert data["method"] == "GET"
+        assert "/ping" in data["path"]
+        assert data["latency_ms"] >= 0
+
+    # Cleanup
+    os.unlink(db_path)

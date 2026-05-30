@@ -93,7 +93,117 @@ def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = No
         finally:
             await manager.disconnect(websocket)
 
-    # Catch-all route — must be registered AFTER /ws and /health
+    # --- API endpoints (must come before catch-all) ---
+
+    @app.post("/replay/{request_id}")
+    async def replay_request(request_id: str):
+        """Replay a previously captured request by ID."""
+        if storage is None:
+            return JSONResponse(
+                {"error": "Storage not enabled — replay requires a database"},
+                status_code=400,
+            )
+
+        original = await storage.get_request(request_id)
+        if original is None:
+            return JSONResponse(
+                {"error": f"Request {request_id} not found"},
+                status_code=404,
+            )
+
+        if not original.get("method") or not original.get("path"):
+            return JSONResponse(
+                {"error": "Incomplete request data — missing method or path"},
+                status_code=400,
+            )
+
+        import uuid
+        new_id = uuid.uuid4().hex
+
+        orig_headers = {}
+        if original.get("request_headers"):
+            try:
+                orig_headers = json.loads(original["request_headers"])
+            except (json.JSONDecodeError, TypeError):
+                orig_headers = {}
+
+        # Emit request.started for the replay
+        started = RequestStarted(
+            request_id=new_id,
+            method=original["method"],
+            url=original["url"] or original["path"],
+            path=original["path"],
+            query=original.get("query"),
+            headers=orig_headers,
+            body=original.get("request_body"),
+        )
+        await manager.broadcast(started)
+        if storage:
+            await storage.store_event(started)
+
+        # Forward the replayed request
+        result = await handler.forward(
+            method=original["method"],
+            path=original["path"].lstrip("/"),
+            headers=orig_headers,
+            body=original.get("request_body"),
+        )
+
+        if result["error"]:
+            error_event = RequestError(
+                request_id=new_id,
+                method=original["method"],
+                url=original["url"] or original["path"],
+                error=result["error"],
+            )
+            await manager.broadcast(error_event)
+            if storage:
+                await storage.store_event(error_event)
+        else:
+            completed = RequestCompleted(
+                request_id=new_id,
+                method=original["method"],
+                url=original["url"] or original["path"],
+                status=result["status"],
+                status_text=result["status_text"],
+                response_headers=result.get("response_headers"),
+                response_body=result.get("response_body"),
+                latency_ms=result["latency_ms"],
+            )
+            await manager.broadcast(completed)
+            if storage:
+                await storage.store_event(completed)
+
+        return JSONResponse({
+            "original_request_id": request_id,
+            "replay_request_id": new_id,
+            "method": original["method"],
+            "path": original["url"] or original["path"],
+            "status": result["status"],
+            "status_text": result["status_text"],
+            "latency_ms": result["latency_ms"],
+            "error": result["error"],
+        })
+
+    @app.get("/logs")
+    async def list_logs(limit: int = 50, offset: int = 0):
+        """List stored request logs."""
+        if storage is None:
+            return JSONResponse([], status_code=200)
+        logs = await storage.list_requests(limit=limit, offset=offset)
+        return JSONResponse([
+            {
+                "request_id": r["request_id"],
+                "method": r["method"],
+                "url": r["url"],
+                "status": r["status"],
+                "latency_ms": r["latency_ms"],
+                "started_at": r["started_at"],
+            }
+            for r in logs
+        ])
+
+    # Catch-all route — must be registered AFTER specific routes
     @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
     async def proxy(request: Request, path: str):
         # Read and cache the request body
