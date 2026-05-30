@@ -71,3 +71,37 @@ class TestWebSocketEndpoint:
                 msg = ws.receive_json()
                 assert msg["type"] == "request.started"
                 assert msg["request_id"] == "ws-test-1"
+
+
+class TestDashboardEndpoint:
+    @pytest.mark.asyncio
+    async def test_dashboard_static_files_served(self, client: AsyncClient):
+        """Dashboard static files are served at /dashboard/."""
+        import os
+
+        dashboard_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "dashboard", "dist",
+        )
+        if not os.path.isdir(dashboard_dir):
+            pytest.skip("Dashboard not built")
+
+        resp = await client.get("/dashboard/")
+        assert resp.status_code == 200
+        assert "text/html" in resp.headers.get("content-type", "")
+
+    @pytest.mark.asyncio
+    async def test_dashboard_does_not_interfere_with_health(self, client: AsyncClient):
+        """Health endpoint still works with dashboard mounted."""
+        import os
+
+        dashboard_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "dashboard", "dist",
+        )
+        if not os.path.isdir(dashboard_dir):
+            pytest.skip("Dashboard not built")
+
+        resp = await client.get("/health")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "ok"
