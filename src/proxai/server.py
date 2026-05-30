@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from typing import Optional
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
@@ -12,23 +13,65 @@ from fastapi.responses import JSONResponse, Response
 from proxai.config import ProxyConfig
 from proxai.models import RequestCompleted, RequestError, RequestStarted
 from proxai.proxy import ProxyHandler
+from proxai.storage import Storage
 from proxai.ws import get_manager
 
 logger = logging.getLogger(__name__)
 
 
-def create_app(config: Optional[ProxyConfig] = None) -> FastAPI:
+def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = None) -> FastAPI:
     """Create the FastAPI application with proxy forwarding.
 
     Args:
         config: Proxy configuration. If None, defaults to localhost:3000.
+        db_path: Optional path to SQLite database. If None, logging is skipped.
+    """
+from contextlib import asynccontextmanager
+from typing import AsyncIterator, Optional
+
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import JSONResponse, Response
+
+from proxai.config import ProxyConfig
+from proxai.models import RequestCompleted, RequestError, RequestStarted
+from proxai.proxy import ProxyHandler
+from proxai.storage import Storage
+from proxai.ws import get_manager
+
+logger = logging.getLogger(__name__)
+
+
+def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = None) -> FastAPI:
+    """Create the FastAPI application with proxy forwarding.
+
+    Args:
+        config: Proxy configuration. If None, reads from PROXAI_TARGET env var
+                 or defaults to localhost:3000.
+        db_path: Optional path to SQLite database. If None, reads from
+                 PROXAI_DB_PATH env var or None.
     """
     if config is None:
-        config = ProxyConfig(target_url="http://localhost:3000")
+        target = os.environ.get("PROXAI_TARGET", "http://localhost:3000")
+        config = ProxyConfig(target_url=target)
+    if db_path is None:
+        db_path = os.environ.get("PROXAI_DB_PATH")
 
-    app = FastAPI(title="Proxai", version="0.1.0")
-    manager = get_manager()
     handler = ProxyHandler(config)
+    storage: Storage | None = None
+    if db_path:
+        storage = Storage(db_path=db_path)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        if storage:
+            await storage.initialize()
+        yield
+        if storage:
+            await storage.close()
+        await handler.close()
+
+    app = FastAPI(title="Proxai", version="0.1.0", lifespan=lifespan)
+    manager = get_manager()
 
     @app.get("/health")
     async def health():
@@ -73,6 +116,8 @@ def create_app(config: Optional[ProxyConfig] = None) -> FastAPI:
             body=body_str,
         )
         await manager.broadcast(started)
+        if storage:
+            await storage.store_event(started)
 
         # Forward the request
         result = await handler.forward(
@@ -91,6 +136,8 @@ def create_app(config: Optional[ProxyConfig] = None) -> FastAPI:
                 error=result["error"],
             )
             await manager.broadcast(error_event)
+            if storage:
+                await storage.store_event(error_event)
 
             # Get the response body from the error result
             error_body = result.get("response_body", json.dumps({"error": result["error"]}))
@@ -112,6 +159,8 @@ def create_app(config: Optional[ProxyConfig] = None) -> FastAPI:
                 latency_ms=result["latency_ms"],
             )
             await manager.broadcast(completed)
+            if storage:
+                await storage.store_event(completed)
 
             # Return the response
             return Response(
