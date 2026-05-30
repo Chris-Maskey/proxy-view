@@ -1,6 +1,6 @@
 {
-  "signature": "src/proxai/cli.py|src/proxai/server.py::📐 Cascade errors in 1 neighbor file(s) — fix before finishing turn:\n<diagnostics file=\"src/proxai/server.py\" reason=\"fallback\">\n  line 22, col 88 rule=cascade:reportReturnType: Function with declared return type \"FastAPI\" must return value on all code paths\n  line 22, col 5 rule=cascade:reportRedeclaration: Function declaration \"create_app\" is obscured by a declaration of the same name\n</diagnostics>\n\n🧪 Likely tests for affected neighbors:\n  tests/test_server.py (pytest)",
-  "sessionId": "lens-mprsnob6-77f52150",
-  "projectSeqStart": 35,
-  "projectSeqEnd": 36
+  "signature": "src/proxai/server.py::Unresolved from this turn — src/proxai/server.py:\n🔴 STOP — 2 issue(s) must be fixed:\n  L73: Object of type \"Middleware\" is not callable\n    Attribute \"__call__\" is unknown\n  Import \"fastapi\" could not be resolved",
+  "sessionId": "lens-mprygwuh-d8d46edd",
+  "projectSeqStart": 131,
+  "projectSeqEnd": 132
 }

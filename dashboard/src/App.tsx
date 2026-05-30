@@ -16,7 +16,8 @@ function getProxyConfig() {
 
 export default function App() {
 	const { port, targetUrl } = getProxyConfig();
-	const wsUrl = `ws://localhost:${port}/ws`;
+	// Use same hostname as the page to avoid cross-origin WS issues
+	const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.hostname}:${port}/ws`;
 	const {
 		requests,
 		selectedId,

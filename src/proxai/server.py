@@ -57,7 +57,23 @@ def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = No
     _dashboard_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'dashboard', 'dist')
     _dashboard_dir = os.path.abspath(_dashboard_dir)
     if os.path.isdir(_dashboard_dir):
-        app.mount("/dashboard", StaticFiles(directory=_dashboard_dir, html=True), name="dashboard")
+        _sf = StaticFiles(directory=_dashboard_dir, html=True)
+
+        # Wrap with no-cache headers
+        from starlette.types import ASGIApp, Scope, Receive, Send
+        class _NoCacheASGI:
+            def __init__(self, app: ASGIApp):
+                self.app = app
+            async def __call__(self, scope: Scope, receive: Receive, send: Send):
+                async def _send(msg):
+                    if msg["type"] == "http.response.start":
+                        headers = list(msg.get("headers", []))
+                        headers.append((b"cache-control", b"no-cache, no-store, must-revalidate"))
+                        msg["headers"] = headers
+                    await send(msg)
+                await self.app(scope, receive, _send)
+
+        app.mount("/dashboard", _NoCacheASGI(_sf), name="dashboard")
 
     @app.get("/health")
     async def health():

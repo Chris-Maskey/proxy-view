@@ -1,49 +1,49 @@
 .status-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  height: var(--status-bar-height);
-  padding: 0 var(--spacing-md);
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-primary);
-  font-size: 12px;
-  color: var(--text-primary);
-  flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	height: var(--status-bar-height);
+	padding: 0 var(--spacing-md);
+	background: var(--bg-secondary);
+	border-top: 1px solid var(--border-primary);
+	font-size: 12px;
+	color: var(--text-primary);
+	flex-shrink: 0;
 }
 
 .status-bar-section {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }
 
 .status-bar-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	display: inline-block;
 }
 
 .status-bar-dot.connected {
-  background: var(--status-2xx);
-  box-shadow: 0 0 4px var(--status-2xx);
+	background: var(--status-2xx);
+	box-shadow: 0 0 4px var(--status-2xx);
 }
 
 .status-bar-dot.disconnected {
-  background: var(--status-5xx);
+	background: var(--status-5xx);
 }
 
 .status-bar-divider {
-  width: 1px;
-  height: 16px;
-  background: var(--border-secondary);
+	width: 1px;
+	height: 16px;
+	background: var(--border-secondary);
 }
 
 .status-bar-errors strong {
-  color: var(--status-5xx);
+	color: var(--status-5xx);
 }
 
 .status-bar-target {
-  color: var(--text-dim);
-  margin-left: auto;
+	color: var(--text-dim);
+	margin-left: auto;
 }
