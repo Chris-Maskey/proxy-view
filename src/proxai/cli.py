@@ -36,15 +36,16 @@ def _get_proxai_dir() -> Path:
 def _create_table() -> Table:
     """Create a Rich table for the live traffic display."""
     table = Table(
-        title="[bold]Proxai — API Debug Proxy[/bold]",
-        title_justify="left",
+        show_header=True,
+        header_style="bold",
         box=None,
         padding=(0, 1),
         show_edge=False,
+        expand=True,
     )
-    table.add_column("Method", style="bold", width=8)
-    table.add_column("Path", style="cyan", width=60)
-    table.add_column("Status", justify="center", width=8)
+    table.add_column("Method", width=8, no_wrap=True)
+    table.add_column("Path", width=60, no_wrap=True)
+    table.add_column("Status", justify="right", width=6)
     table.add_column("Latency", justify="right", width=10)
     table.add_column("Time", width=12)
     return table
@@ -107,15 +108,26 @@ def start(
         "--db",
         help="Path to SQLite database (default: ~/.proxai/db.sqlite).",
     ),
+    dashboard: bool = typer.Option(
+        False,
+        "--dashboard",
+        "-d",
+        help="Open the React dashboard in a browser.",
+    ),
 ) -> None:
     """Start the Proxai proxy server and live CLI viewer."""
     _get_proxai_dir()
     run = os.environ.get("PROXAI_RUN")  # internal flag for testing
     if run != "server":
-        _run_cli(target=target, port=port, db_path=db_path)
+        _run_cli(target=target, port=port, db_path=db_path, dashboard=dashboard)
 
 
-def _run_cli(target: str, port: int, db_path: Optional[str] = None) -> None:
+def _run_cli(
+    target: str,
+    port: int,
+    db_path: Optional[str] = None,
+    dashboard: bool = False,
+) -> None:
     """Run the CLI: start server subprocess, health check, connect WS, show live display."""
     resolved_db = db_path or str(PROXAI_DIR / "db.sqlite")
 
@@ -150,6 +162,13 @@ def _run_cli(target: str, port: int, db_path: Optional[str] = None) -> None:
     try:
         # Health-check loop
         _wait_for_health(port)
+
+        # Open dashboard in browser if requested
+        if dashboard:
+            import webbrowser
+            dashboard_url = f"http://127.0.0.1:{port}/dashboard/?port={port}&target={target}"
+            console.print(f"[blue]Opening dashboard: {dashboard_url}[/blue]")
+            webbrowser.open(dashboard_url)
 
         # Connect WebSocket and show live display
         asyncio.run(_run_live_display(port, target))

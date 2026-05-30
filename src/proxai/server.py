@@ -5,32 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import os
-from typing import Optional
-
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse, Response
-
-from proxai.config import ProxyConfig
-from proxai.models import RequestCompleted, RequestError, RequestStarted
-from proxai.proxy import ProxyHandler
-from proxai.storage import Storage
-from proxai.ws import get_manager
-
-logger = logging.getLogger(__name__)
-
-
-def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = None) -> FastAPI:
-    """Create the FastAPI application with proxy forwarding.
-
-    Args:
-        config: Proxy configuration. If None, defaults to localhost:3000.
-        db_path: Optional path to SQLite database. If None, logging is skipped.
-    """
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Optional
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 
 from proxai.config import ProxyConfig
 from proxai.models import RequestCompleted, RequestError, RequestStarted
@@ -72,6 +52,12 @@ def create_app(config: Optional[ProxyConfig] = None, db_path: Optional[str] = No
 
     app = FastAPI(title="Proxai", version="0.1.0", lifespan=lifespan)
     manager = get_manager()
+
+    # Serve dashboard static files if built
+    _dashboard_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'dashboard', 'dist')
+    _dashboard_dir = os.path.abspath(_dashboard_dir)
+    if os.path.isdir(_dashboard_dir):
+        app.mount("/dashboard", StaticFiles(directory=_dashboard_dir, html=True), name="dashboard")
 
     @app.get("/health")
     async def health():
