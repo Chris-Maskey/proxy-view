@@ -89,7 +89,7 @@ def _latency_style(latency_ms: float) -> str:
         return "red"
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def start(
     target: str = typer.Option(
         "http://localhost:3000",
